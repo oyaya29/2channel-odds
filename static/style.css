@@ -1,0 +1,374 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans CJK JP", sans-serif;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    min-height: 100vh;
+    color: #e0e0e0;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    text-align: center;
+    padding: 40px 0;
+}
+
+h1 {
+    font-size: 2.5rem;
+    color: #ffd700;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    color: #a0a0a0;
+    font-size: 1rem;
+}
+
+main {
+    background: rgba(255,255,255,0.05);
+    border-radius: 16px;
+    padding: 30px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.form-group {
+    margin-bottom: 24px;
+}
+
+label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #ffd700;
+}
+
+input[type="url"],
+textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    background: rgba(0,0,0,0.3);
+    color: #fff;
+    font-size: 1rem;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+input[type="url"]:focus,
+textarea:focus {
+    outline: none;
+    border-color: #ffd700;
+    box-shadow: 0 0 0 3px rgba(255,215,0,0.2);
+}
+
+textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+input[type="number"] {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    background: rgba(0,0,0,0.3);
+    color: #fff;
+    font-size: 1rem;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+input[type="number"]:focus {
+    outline: none;
+    border-color: #ffd700;
+    box-shadow: 0 0 0 3px rgba(255,215,0,0.2);
+}
+
+input[type="number"]::placeholder {
+    color: #666;
+}
+
+.range-inputs {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.range-inputs input[type="number"] {
+    flex: 1;
+}
+
+.range-separator {
+    color: #888;
+    font-size: 1.2rem;
+}
+
+small {
+    display: block;
+    margin-top: 6px;
+    color: #888;
+    font-size: 0.85rem;
+}
+
+input[type="range"] {
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.1);
+    appearance: none;
+    cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #ffd700;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.range-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+    color: #888;
+    font-size: 0.85rem;
+}
+
+button[type="submit"] {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+    border: none;
+    border-radius: 8px;
+    color: #1a1a2e;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+button[type="submit"]:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255,215,0,0.4);
+}
+
+button[type="submit"]:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.error {
+    background: rgba(220,53,69,0.2);
+    border: 1px solid #dc3545;
+    color: #ff6b6b;
+    padding: 16px;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+#results {
+    margin-top: 40px;
+}
+
+#results h2 {
+    color: #ffd700;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid rgba(255,215,0,0.3);
+}
+
+.summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+    margin-bottom: 30px;
+}
+
+.summary-item {
+    background: rgba(0,0,0,0.2);
+    padding: 16px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.summary-item .label {
+    display: block;
+    font-size: 0.85rem;
+    color: #888;
+    margin-bottom: 4px;
+}
+
+.summary-item .value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.thread-details {
+    background: rgba(0,0,0,0.2);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 24px;
+}
+
+.thread-details h3 {
+    color: #ffd700;
+    font-size: 1rem;
+    margin-bottom: 12px;
+}
+
+.thread-details ul {
+    list-style: none;
+}
+
+.thread-details li {
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    word-break: break-all;
+}
+
+.thread-success {
+    background: rgba(40, 167, 69, 0.2);
+    border-left: 3px solid #28a745;
+}
+
+.thread-error {
+    background: rgba(220, 53, 69, 0.2);
+    border-left: 3px solid #dc3545;
+}
+
+.status-icon {
+    margin-right: 8px;
+    font-weight: bold;
+}
+
+.thread-success .status-icon {
+    color: #28a745;
+}
+
+.thread-error .status-icon {
+    color: #dc3545;
+}
+
+.thread-posts {
+    color: #888;
+    margin-left: 8px;
+}
+
+.thread-error-msg {
+    color: #ff6b6b;
+    margin-left: 8px;
+    font-size: 0.85rem;
+}
+
+.odds-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.odds-table th,
+.odds-table td {
+    padding: 14px 12px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.odds-table th {
+    background: rgba(255,215,0,0.1);
+    color: #ffd700;
+    font-weight: 600;
+}
+
+.odds-table .rank {
+    width: 60px;
+    text-align: center;
+}
+
+.odds-table .count,
+.odds-table .probability,
+.odds-table .odds {
+    text-align: right;
+    width: 100px;
+}
+
+.odds-table .odds {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.odds-table tr.favorite .odds {
+    color: #ff6b6b;
+}
+
+.odds-table tr.longshot .odds {
+    color: #4ecdc4;
+}
+
+.odds-table tbody tr:hover {
+    background: rgba(255,255,255,0.05);
+}
+
+.odds-table .keyword {
+    min-width: 150px;
+}
+
+.synonyms {
+    display: block;
+    font-size: 0.75rem;
+    color: #888;
+    margin-top: 4px;
+}
+
+small code {
+    background: rgba(255,215,0,0.2);
+    color: #ffd700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+}
+
+footer {
+    text-align: center;
+    padding: 30px 0;
+    color: #666;
+    font-size: 0.85rem;
+}
+
+@media (max-width: 600px) {
+    h1 {
+        font-size: 1.8rem;
+    }
+
+    main {
+        padding: 20px;
+    }
+
+    .odds-table th,
+    .odds-table td {
+        padding: 10px 8px;
+        font-size: 0.9rem;
+    }
+
+    .odds-table .count,
+    .odds-table .probability {
+        width: 70px;
+    }
+}

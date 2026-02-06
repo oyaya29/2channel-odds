@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2chオッズメーカー</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>2chオッズメーカー</h1>
+            <p class="subtitle">スレッドのキーワード出現数から競馬式オッズを計算</p>
+        </header>
+
+        <main>
+            <form id="analyze-form">
+                <div class="form-group">
+                    <label for="urls">スレッドURL（複数可・レス番号範囲指定可）</label>
+                    <textarea id="urls" name="urls" rows="5"
+                              placeholder="https://xxx.5ch.net/test/read.cgi/xxx/xxxxxxxxxx/ 1-100&#10;https://xxx.5ch.net/test/read.cgi/xxx/yyyyyyyyyy/ 50-200&#10;https://xxx.5ch.net/test/read.cgi/xxx/zzzzzzzzzz/"
+                              required></textarea>
+                    <small>改行区切りで複数入力。レス番号範囲は <code>URL 開始-終了</code> で指定（例: <code>URL 1-100</code>、<code>URL 50</code>=50番以降、省略で全レス）</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="keywords">キーワード</label>
+                    <textarea id="keywords" name="keywords" rows="4"
+                              placeholder="Aチーム|A|チームA&#10;Bチーム|B&#10;Cチーム"
+                              required></textarea>
+                    <small>改行またはカンマ区切りで2つ以上入力。同義語は <code>|</code> で区切る（例: Aチーム|A|チームA）</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="payout_rate">
+                        払い戻し率: <span id="payout-value">80</span>%
+                    </label>
+                    <input type="range" id="payout_rate" name="payout_rate"
+                           min="10" max="100" value="80" step="5">
+                    <div class="range-labels">
+                        <span>10%</span>
+                        <span>100%</span>
+                    </div>
+                </div>
+
+                <button type="submit" id="submit-btn">
+                    <span class="btn-text">オッズを計算</span>
+                    <span class="btn-loading" style="display: none;">分析中...</span>
+                </button>
+            </form>
+
+            <div id="error-message" class="error" style="display: none;"></div>
+
+            <div id="results" style="display: none;">
+                <h2>分析結果</h2>
+
+                <div class="summary">
+                    <div class="summary-item">
+                        <span class="label">分析スレッド数</span>
+                        <span class="value" id="thread-count">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">分析レス数</span>
+                        <span class="value" id="post-count">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">キーワード出現合計</span>
+                        <span class="value" id="total-count">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">払い戻し率</span>
+                        <span class="value" id="result-payout">-</span>
+                    </div>
+                </div>
+
+                <div id="thread-details" class="thread-details" style="display: none;">
+                    <h3>スレッド別取得結果</h3>
+                    <ul id="thread-list"></ul>
+                </div>
+
+                <table class="odds-table">
+                    <thead>
+                        <tr>
+                            <th class="rank">順位</th>
+                            <th class="keyword">キーワード</th>
+                            <th class="count">出現数</th>
+                            <th class="probability">確率</th>
+                            <th class="odds">オッズ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-body">
+                    </tbody>
+                </table>
+            </div>
+        </main>
+
+        <footer>
+            <p>※ 5ちゃんねるの利用規約を遵守してご利用ください</p>
+        </footer>
+    </div>
+
+    <script>
+        // 払い戻し率スライダーの値を表示
+        const payoutSlider = document.getElementById('payout_rate');
+        const payoutValue = document.getElementById('payout-value');
+
+        payoutSlider.addEventListener('input', function() {
+            payoutValue.textContent = this.value;
+        });
+
+        // フォーム送信
+        document.getElementById('analyze-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submit-btn');
+            const btnText = submitBtn.querySelector('.btn-text');
+            const btnLoading = submitBtn.querySelector('.btn-loading');
+            const errorDiv = document.getElementById('error-message');
+            const resultsDiv = document.getElementById('results');
+
+            // ボタンをローディング状態に
+            submitBtn.disabled = true;
+            btnText.style.display = 'none';
+            btnLoading.style.display = 'inline';
+            errorDiv.style.display = 'none';
+            resultsDiv.style.display = 'none';
+
+            try {
+                const formData = new FormData(this);
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || data.error) {
+                    throw new Error(data.error || 'エラーが発生しました');
+                }
+
+                // 結果を表示
+                displayResults(data);
+
+            } catch (error) {
+                errorDiv.textContent = error.message;
+                errorDiv.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                btnText.style.display = 'inline';
+                btnLoading.style.display = 'none';
+            }
+        });
+
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            const tbody = document.getElementById('results-body');
+
+            // サマリーを更新
+            document.getElementById('thread-count').textContent =
+                `${data.summary.success_count}/${data.summary.thread_count}`;
+            document.getElementById('post-count').textContent = data.summary.post_count.toLocaleString();
+            document.getElementById('total-count').textContent = data.summary.total_count.toLocaleString();
+            document.getElementById('result-payout').textContent = data.summary.payout_rate;
+
+            // スレッド別結果を表示
+            if (data.threads && data.threads.length > 0) {
+                const threadList = document.getElementById('thread-list');
+                const threadDetails = document.getElementById('thread-details');
+                threadList.innerHTML = '';
+
+                data.threads.forEach(thread => {
+                    const li = document.createElement('li');
+                    li.className = thread.status === 'success' ? 'thread-success' : 'thread-error';
+
+                    const shortUrl = thread.url.length > 50
+                        ? thread.url.substring(0, 50) + '...'
+                        : thread.url;
+
+                    if (thread.status === 'success') {
+                        const rangeInfo = thread.range ? ` [${thread.range}]` : '';
+                        li.innerHTML = `<span class="status-icon">✓</span> ${escapeHtml(shortUrl)} <span class="thread-posts">(${thread.post_count}/${thread.total_posts}レス${rangeInfo})</span>`;
+                    } else {
+                        li.innerHTML = `<span class="status-icon">✗</span> ${escapeHtml(shortUrl)} <span class="thread-error-msg">${escapeHtml(thread.error || 'エラー')}</span>`;
+                    }
+                    threadList.appendChild(li);
+                });
+
+                threadDetails.style.display = 'block';
+            }
+
+            // テーブルをクリア
+            tbody.innerHTML = '';
+
+            // 結果を追加
+            data.results.forEach((item, index) => {
+                const row = document.createElement('tr');
+
+                // オッズに応じてクラスを追加
+                if (item.odds !== '-') {
+                    const odds = parseFloat(item.odds);
+                    if (odds < 2) {
+                        row.classList.add('favorite');
+                    } else if (odds > 10) {
+                        row.classList.add('longshot');
+                    }
+                }
+
+                // 同義語表示
+                let keywordHtml = escapeHtml(item.keyword);
+                if (item.synonyms && item.synonyms.length > 1) {
+                    const synonymsText = item.synonyms.map(s => escapeHtml(s)).join(', ');
+                    keywordHtml += `<span class="synonyms">${synonymsText}</span>`;
+                }
+
+                row.innerHTML = `
+                    <td class="rank">${index + 1}</td>
+                    <td class="keyword">${keywordHtml}</td>
+                    <td class="count">${item.count.toLocaleString()}</td>
+                    <td class="probability">${item.probability}</td>
+                    <td class="odds">${item.odds === '-' ? '-' : item.odds + '倍'}</td>
+                `;
+
+                tbody.appendChild(row);
+            });
+
+            resultsDiv.style.display = 'block';
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
